@@ -2,6 +2,7 @@ import logging
 import pickle
 from pymemcache.client import Client
 from gevent.queue import Queue
+from contextlib import contextmanager
 
 
 def pickle_serializer(key, value):
@@ -44,6 +45,16 @@ class PyMemcachePool(object):
         self._host = host
         self._port = port
 
+    @contextmanager
+    def client(self):
+        try:
+            client = self.get_client()
+            yield client
+        except:
+            raise
+        finally:
+            self.return_client(client)
+
     def get_client(self):
         """
         Get an existing client, or if none are available create a new
@@ -52,11 +63,15 @@ class PyMemcachePool(object):
         pool = self._pool
         logging.debug("Attempting to get client from pool size=%s queue_size=%s" % (self._size, pool.qsize()))
         if self._size >= self._maxsize or pool.qsize():
-            client = pool.get(timeout=2)
+            print pool.qsize()
+            print self._size
+            client = None
             try:
-                client._connect()
+                client = pool.get(timeout=2)
+                if client:
+                    client._connect()
             except:
-                logging.error("Re-connect to memcached failed!")
+                logging.error("Re-connect to memcached failed!", exc_info=True)
                 if client is not None:
                     client.close()
                 self._size -= 1
@@ -64,12 +79,10 @@ class PyMemcachePool(object):
             else:
                 return client
         else:
-            logging.debug("Createing new client")
             self._size += 1
             try:
                 new_item = self._create_client()
             except:
-                logging.error("Unable to connect to memcached!")
                 self._size -= 1
                 raise
             return new_item
@@ -109,6 +122,6 @@ class PyMemcachePool(object):
             client = Client((self._host, self._port), serializer=self._serializer, deserializer=self._deserializer)
             client._connect()
         except:
-            logging.error("Unable to connect to memcached!")
-            client = None
+            logging.debug("Unable to connect to memcached!", exc_info=True)
+            raise
         return client
