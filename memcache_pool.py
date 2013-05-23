@@ -63,8 +63,6 @@ class PyMemcachePool(object):
         pool = self._pool
         logging.debug("Attempting to get client from pool size=%s queue_size=%s" % (self._size, pool.qsize()))
         if self._size >= self._maxsize or pool.qsize():
-            print pool.qsize()
-            print self._size
             client = None
             try:
                 client = pool.get(timeout=2)
