@@ -4,6 +4,8 @@ from pymemcache.client import Client
 from gevent.queue import Queue
 from contextlib import contextmanager
 
+log = logging.getLogger(__name__)
+
 
 def pickle_serializer(key, value):
     if type(value) == str:
@@ -61,7 +63,7 @@ class PyMemcachePool(object):
         one. If the pool is at maxsize, return nothing.
         """
         pool = self._pool
-        logging.debug("Attempting to get client from pool size=%s queue_size=%s" % (self._size, pool.qsize()))
+        log.debug("Attempting to get client from pool size=%s queue_size=%s" % (self._size, pool.qsize()))
         if self._size >= self._maxsize or pool.qsize():
             client = None
             try:
@@ -69,7 +71,7 @@ class PyMemcachePool(object):
                 if client:
                     client._connect()
             except:
-                logging.error("Re-connect to memcached failed!", exc_info=True)
+                log.error("Re-connect to memcached failed!", exc_info=True)
                 if client is not None:
                     client.close()
                 self._size -= 1
@@ -93,10 +95,10 @@ class PyMemcachePool(object):
             try:
                 client._connect()
             except:
-                logging.debug("Returned bad connection to pool")
+                log.debug("Returned bad connection to pool")
                 self._size -= 1
             else:
-                logging.debug("Returned OK client")
+                log.debug("Returned OK client")
                 self._pool.put(client)
 
     def shutdown(self):
@@ -108,18 +110,18 @@ class PyMemcachePool(object):
             try:
                 client.close()
             except Exception:
-                logging.error("Unable to close client")
+                log.error("Unable to close client")
                 pass
 
     def _create_client(self):
         """
         Create a new client using smart_client to get connection details
         """
-        logging.debug("Creating new memcached client")
+        log.debug("Creating new memcached client")
         try:
             client = Client((self._host, self._port), serializer=self._serializer, deserializer=self._deserializer)
             client._connect()
         except:
-            logging.debug("Unable to connect to memcached!", exc_info=True)
+            log.debug("Unable to connect to memcached!", exc_info=True)
             raise
         return client
