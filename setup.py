@@ -13,8 +13,8 @@ setup(name='pymemcache-pool',
       include_package_data=True,
       platforms='any',
       install_requires=[
-          'gevent==0.13.8',
-          'greenlet==0.4.0',
+          'gevent==1.0',
+          'greenlet==0.4.2',
           'pymemcache>=1.0.1',
           'wsgiref==0.1.2'
       ],
