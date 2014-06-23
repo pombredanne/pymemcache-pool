@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='pymemcache-pool',
-      version='1.1',
+      version='1.2',
       description='',
       author='Stephen Huenneke',
       author_email='stephen@runscope.com',

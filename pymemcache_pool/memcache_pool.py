@@ -68,8 +68,7 @@ class PyMemcachePool(object):
             client = None
             try:
                 client = pool.get(timeout=2)
-                if not client.sock:
-                    client.connect()
+                client.stats()
             except:
                 log.error("Re-connect to memcached failed!", exc_info=True)
                 if client is not None:
@@ -93,8 +92,7 @@ class PyMemcachePool(object):
         """
         if client is not None:
             try:
-                if not client.sock:
-                    client.connect()
+                client.stats()
             except:
                 log.debug("Returned bad connection to pool")
                 self._size -= 1
@@ -120,9 +118,13 @@ class PyMemcachePool(object):
         """
         log.debug("Creating new memcached client")
         try:
-            client = Client((self._host, self._port),
-                            serializer=self._serializer,
-                            deserializer=self._deserializer, no_delay=True)
+            client = Client(
+                (self._host, self._port),
+                serializer=self._serializer,
+                deserializer=self._deserializer,
+                no_delay=True,
+                ignore_exc=True,
+            )
             client._connect()
         except:
             log.debug("Unable to connect to memcached!", exc_info=True)
