@@ -15,7 +15,7 @@ setup(name='pymemcache-pool',
       install_requires=[
           'gevent==1.0',
           'greenlet==0.4.2',
-          'pymemcache>=1.0.1',
+          'pymemcache>=1.2.2',
           'wsgiref==0.1.2'
       ],
       )
